@@ -1,14 +1,15 @@
-class Scene01 extends Phaser.Scene{
+class Scene02 extends Phaser.Scene{
     constructor(){
-        super('Scene01')
+        super('Scene02')
+        
         
     }
 
     create(){
         this.cont = 0  
         this.sky = this.add.image(0,0,'sky').setOrigin(0,0)
-        this.sky.displayWidth = 2000
-        this.sky.displayHeight = 600
+        this.sky.displayWidth = 1000
+        this.sky.displayHeight = 1000
 
         this.player = this.physics.add.sprite(50,450, 'player')
         .setCollideWorldBounds(true)
@@ -36,18 +37,22 @@ class Scene01 extends Phaser.Scene{
         .setScale(3.5,1)
         .setOrigin(0,1)
         .refreshBody()
-        this.platforms.create(1500,600, 'plataforma')
-        .setScale(3.5,1)
-        .refreshBody()
-        this.platforms.create(1700,450,'plataforma')
+        this.platforms.create(100,300,'plataforma')
         .setScale(2,0.5).refreshBody()
-        this.platforms.create(1200,350,'plataforma')
+        this.platforms.create(600,400,'plataforma')
         .setScale(0.75,0.5).refreshBody()
-        this.platforms.create(800,200,'plataforma')
-        .setScale(2,0.5).refreshBody()
-        this.platforms.create(200,200,'plataforma')
+        this.platforms.create(800,150,'plataforma')
         .setScale(2,0.5).refreshBody()
 
+        this.mPlatforms = this.physics.add.group({
+            allowGravity: false,
+            immovable: true
+        })
+
+        let mPlatforms = this.mPlatforms.create(200,150,'plataforma').setScale(.25,.5)
+            mPlatforms.speed = 2
+            mPlatforms.minX = 150
+            mPlatforms.maxX = 300
         
         this.totalLife = 3
         this.heart = this.totalLife
@@ -59,38 +64,38 @@ class Scene01 extends Phaser.Scene{
         this.txtTitle = this.add.text(15,550,`Nivel 1`).setScrollFactor(.4)
         
         this.enemies = this.physics.add.group()
-        let wolf = this.enemies.create(1500,400, 'wolf')
-        .setBounce(.2)
-        .setCollideWorldBounds(true)
-        .setVelocityX(400)
-
-        let slime = this.enemies.create(1500,400, 'slime')
+        let enemy = this.enemies.create(0,0, 'wolf')
         .setBounce(.2)
         .setCollideWorldBounds(true)
         .setVelocityX(-400)
+
+        let slime = this.enemies.create(0,0, 'slime')
+        .setBounce(.2)
+        .setCollideWorldBounds(true)
+        .setVelocityX(-800)
+        
         
         this.porta = this.physics.add.group({
             key:'porta',
             setXY:{
-                x: 10,
-                y: 0
+                x: 700,
+                y: 10
             }
         })
         this.star = this.physics.add.group({
             key: 'star',
-            repeat: 5,
+            repeat: 4,
             setXY: {
-                x: 200,
-                y: 500,
-                stepX: 250
+                x: 12,
+                y: -50,
+                stepX: 160
             }
         })
-        
         this.vida = this.physics.add.group({
             key: 'vida',
             setXY: {
-                x:400,
-                y:18,
+                x:0,
+                y: 12,
             }
         })
 
@@ -98,23 +103,26 @@ class Scene01 extends Phaser.Scene{
             c.setBounceY(.4)
         })
 
+        this.physics.add.collider(this.player, this.mPlatforms, this.platformsMoveThings)
+        this.physics.add.collider(this.enemies, this.mPlatforms, this.platformsMoveThings)
         this.physics.add.collider(this.player, this.enemies, this.enemyHit, null, this)
         this.physics.add.collider(this.player, this.platforms)
         this.physics.add.collider(this.enemies, this.platforms)
         this.physics.add.collider(this.star, this.platforms)
         this.physics.add.collider(this.vida, this.platforms)
         this.physics.add.collider(this.porta, this.platforms)
+        this.physics.add.collider(this.star, this.mPlatforms, this.platformsMoveThings)
         this.physics.add.overlap(this.player, this.star, this.coletaStar, null, this)
         this.physics.add.overlap(this.player, this.vida, this.coletaVida, null, this)
         this.physics.add.overlap(this.player, this.porta, this.mudarFase, null, this)
 
-        this.physics.world.setBounds(0,0,2000, 600)
-        this.cameras.main.startFollow(this.player).setBounds(0,0,2000, 600)
+        this.physics.world.setBounds(0,0,800,1500)
+        this.cameras.main.startFollow(this.player).setBounds(0,0,800, 600)
         
         this.gameOver = false
     }
     mudarFase(){
-        this.scene.start('Scene02')
+        this.scene.start('SceneBoss')
     }
     setVidaXp(){
         this.txtHeart.setText(this.heart > 9 ? `HP:${this.heart}`:`HP:0${this.heart}`).setScrollFactor(0)
@@ -180,7 +188,15 @@ class Scene01 extends Phaser.Scene{
             }
         }
     }
-    
+    movePlatform(p){
+        if(p.x < p.minX || p.x > p.maxX){
+            p.speed *= -1
+        }
+        p.x += p.speed
+    }
+    platformsMoveThings(sprite,plat){
+        sprite.x += plat.speed
+    }
     update(){
         this.up()
         this.temp()
@@ -206,6 +222,9 @@ class Scene01 extends Phaser.Scene{
             if(!this.control.up.isDown && !this.player.canJump){
                 this.player.canJump = true
             }
+            this.mPlatforms.children.iterate((plat) => {
+                this.movePlatform(plat)
+            })
                 
         }
         
