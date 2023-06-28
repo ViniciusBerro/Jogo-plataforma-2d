@@ -61,7 +61,7 @@ class Scene02 extends Phaser.Scene{
         this.txtXp = this.add.text(15,30,`Xp:${this.xp}`).setScrollFactor(0)
         this.up()
         
-        this.txtTitle = this.add.text(15,550,`Nivel 1`).setScrollFactor(.4)
+        this.txtTitle = this.add.text(15,550,`Nivel 2`).setScrollFactor(.4)
         
         this.enemies = this.physics.add.group()
         let enemy = this.enemies.create(0,0, 'wolf')
